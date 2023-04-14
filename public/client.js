@@ -10,8 +10,6 @@ class Client {
     onMessage(args) {
         console.log({ clientOnMessage: args })
         $('.content').append($(`<div style="color:hsl(${args.color}, 96%, 44%);">${args.sender}: ${args.message}</div>`))
-        // console.log('message received: ' + args)
-        // this.sendMessage(args + "a")
     }
 }
 
