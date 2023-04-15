@@ -1,71 +1,54 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <script src="/socket.io/socket.io.js"></script>
+  <title>Wolforce's Tests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
 
-    <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/addons/p5.sound.min.js"></script>
-    <script src="https://p5play.org/v3/planck.min.js"></script>
-    <script src="https://p5play.org/v3/p5play.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background-color: rgb(31, 33, 36);
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+  </style>
 
-    <!-- <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/p5.min.js"></script> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/addons/p5.sound.min.js"></script> -->
-    <!-- <script src="https://p5play.org/v3/planck.min.js"></script> -->
-    <!-- <script src="https://p5play.org/v3/p5play.js"></script> -->
+  <script src="/socket.io/socket.io.js"></script>
 
-    <script src="client.js"></script>
-    <script src="data.js"></script>
-    <!-- <script src="engine.js"></script> -->
-    <!-- <script src="GalaxyMap.js"></script> -->
-    <script src="GalaxyBuilder.js"></script>
-    <script src="renderer.js"></script>
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.151.3/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.151.3/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="modules/util.js"></script>
+  <script type="module" src="modules/main.js"></script>
+  <script type="module" src="modules/data.js"></script>
+  <script src="client.js"></script>
 
-    <style>
-        body {
-            margin: 0;
-            background-color: rgb(31, 33, 36);
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-        }
-    </style>
 </head>
 
 <body class="sl-theme-dark">
-</body>
-<script>
 
-    var socket = io({ transports: ['websocket'] });
-    socket.on('message', (args) => {
+  <script>
+
+    function connect() {
+      var socket = io({ transports: ['websocket'] });
+      socket.on('message', (args) => {
         client.onMessage(JSON.parse(args))
-    });
+      });
+    }
+  </script>
 
-    let galaxy = galaxyBuilder.create(32, 8, 20000);
-    console.log(`created galaxy ${galaxy.name}. radius: ${galaxy.radius}`);
-    galaxy.sectors = galaxyBuilder.populate(galaxy, 10000, 2);
-    console.log(`populated galaxy ${galaxy.name}. totalBodies: ${galaxy.totalBodies}`);
-    console.log({ galaxy })
-
-    //var canvas = document.getElementById('canvas');
-    //var map = new GalaxyMap(galaxy)
-    //map.initCanvas(canvas)
-    //map.loadImages(assets, () => {
-    //    console.log('starting to draw...')
-    //    console.log({ map, canvas })
-    //    //map.ctx._redraw()
-    //    //var ii = new Image(64,64)
-    //    //ii.src = 'assets/star_9.png'
-    //    //ii.
-    //    const image = document.getElementById("star_9");
-    //    image.addEventListener("load", (e) => {
-    //        ctx.drawImage(image, 33, 71, 104, 124, 21, 20, 87, 104);
-    //    });
-    // })
-
-</script>
+</body>
 
 </html>
