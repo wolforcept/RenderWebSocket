@@ -1,10 +1,12 @@
 const MENU_W = 300
-const OBJ_W = 64, OBJ_W2 = OBJ_W / 2;
-const OBJ_H = 64, OBJ_H2 = OBJ_H / 2;
-const CANVAS_W = OBJ_W * common.GRID_W + MENU_W
-const CANVAS_H = OBJ_H * common.GRID_H
-const CENTER_X = OBJ_W * common.GRID_W / 2
-const CENTER_Y = OBJ_H * common.GRID_H / 2
+const OBJ_W = 32, OBJ_W2 = OBJ_W / 2;
+const OBJ_H = 32, OBJ_H2 = OBJ_H / 2;
+const VIEW_W = 20;
+const VIEW_H = 20;
+const CANVAS_W = OBJ_W * VIEW_W + MENU_W
+const CANVAS_H = OBJ_H * VIEW_H
+const CENTER_X = OBJ_W * VIEW_W / 2
+const CENTER_Y = OBJ_H * VIEW_H / 2
 
 let images = [];
 function preload() {
@@ -40,8 +42,8 @@ function draw() {
 }
 
 function renderPlayers(players, player) {
-    const px = player?.x ?? 0;
-    const py = player?.y ?? 0;
+    const px = player?.x ? player.x : 0;
+    const py = player?.y ? player.y : 0;
 
     noStroke();
     colorMode(HSB);
@@ -54,8 +56,9 @@ function renderPlayers(players, player) {
 }
 
 function renderGrid(grid, player) {
-    const px = player?.x ?? 0;
-    const py = player?.y ?? 0;
+    const px = player?.x ? player.x : 0;
+    const py = player?.y ? player.y : 0;
+
     for (let x = 0; x < grid.length; x++) {
         for (let y = 0; y < grid[x].length; y++) {
             const type = grid[x][y]

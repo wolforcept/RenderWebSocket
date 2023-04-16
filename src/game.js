@@ -6,6 +6,11 @@ const buildings = {
         [60, 61, 61, 62],
         [72, 74, 73, 75]
     ],
+    house2: [
+        [48, 49, 49, 50],
+        [60, 61, 61, 62],
+        [72, 74, 73, 75]
+    ],
 }
 class Data {
 
@@ -29,14 +34,21 @@ class Data {
             for (let y = 0; y < common.GRID_H; y++) {
                 if (Math.random() < .5)
                     this.set(x, y, tiles.grass1)
-                else if (Math.random() < .4)
+                else if (Math.random() < .5)
                     this.set(x, y, tiles.grass2)
-                else
+                if (Math.random() < .5)
                     this.set(x, y, tiles.grass3)
+                // if (x >= y * y - 10 && 1.4 * x + 4 <= y * y - 10)
+                // if (Math.abs(x * x * x - y * y + 10) < 8 + x * x)
+                const calc = 10 + 4 * Math.sin(.2 * x) + 8 * Math.sin(.1 * x)
+                if (calc < y && calc > y - Math.random() * 2)
+                    this.set(x, y, tiles.grass4)
             }
         }
 
-        this.setBuilding(buildings.house, 5, 5)
+        this.setBuilding(buildings.house, 10, 15)
+        this.setBuilding(buildings.house, 26, 7)
+        this.setBuilding(buildings.house2, 21, 23)
     }
 
     setBuilding(a, x, y) {
@@ -49,7 +61,7 @@ class Data {
 
     set(x, y, tile) {
         if (this.grid.isWithin(x, y))
-            this.grid[x][y] = tile.id ?? tile
+            this.grid[x][y] = typeof (tile) === 'object' ? tile.id : tile
     }
 
     mine(x, y) {
@@ -84,8 +96,7 @@ class Player {
             if (tile) {
                 if (
                     (Math.abs(this.x - tx) == 1 && Math.abs(this.y - ty) == 0)
-                    ||
-                    (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
+                    || (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
                 ) {
                     if (!tile.blocks) {
                         this.x = tx
