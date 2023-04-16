@@ -2,53 +2,56 @@
 <html lang="en">
 
 <head>
-  <title>Wolforce's Tests</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="utf-8">
+    <title>Wolforce's Tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
 
-  <style>
-    body {
-      margin: 0;
-      background-color: rgb(31, 33, 36);
-      text-align: center;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-    }
-  </style>
+    <style>
+        body {
+            margin: 0;
+            background-color: rgb(31, 33, 36);
+            height: 100%;
+        }
 
-  <script src="/socket.io/socket.io.js"></script>
+        body2 {
+            margin: 0;
+            background-color: rgb(31, 33, 36);
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            display: table;
+        }
 
-  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+        canvas {
+            background-color: black;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.151.3/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.151.3/examples/jsm/"
-      }
-    }
-  </script>
-  <script type="module" src="modules/util.js"></script>
-  <script type="module" src="modules/main.js"></script>
-  <script type="module" src="modules/data.js"></script>
-  <script src="client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="p5.min.js"></script>
+    <script>
+        const module = {};
+        const DATA = {};
+    </script>
+    <script src="common.js"></script>
+    <script src="client.js"></script>
 
 </head>
 
 <body class="sl-theme-dark">
-
-  <script>
-
-    function connect() {
-      var socket = io({ transports: ['websocket'] });
-      socket.on('message', (args) => {
-        client.onMessage(JSON.parse(args))
-      });
-    }
-  </script>
-
+    <script src="renderer.js"></script>
 </body>
+
+<script>
+    var socket = io({ transports: ['websocket'] });
+    socket.on('message', (args) => {
+        client.onMessage(JSON.parse(args))
+    });
+</script>
 
 </html>

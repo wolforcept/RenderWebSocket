@@ -1,84 +1,62 @@
-const antonio = ["building_cabin",
-    "building_castle", "building_dock", "building_farm", "building_house", "building_market", "building_mill", "building_mine", "building_sheep", "building_smelter", "building_tower", "building_village", "building_wall", "building_water", "dirt", "dirt_lumber", "grass", "grass_forest", "grass_hill", "path_corner", "path_cornerSharp", "path_crossing", "path_end", "path_intersectionA", "path_intersectionB", "path_intersectionC", "path_intersectionD", "path_intersectionE", "path_intersectionF", "path_intersectionG", "path_intersectionH", "path_start", "path_straight", "river_corner", "river_cornerSharp", "river_crossing",
-    "river_end", "river_intersectionA", "river_intersectionB", "river_intersectionC", "river_intersectionD", "river_intersectionE", "river_intersectionF", "river_intersectionG", "river_intersectionH", "river_start", "river_straight", "sand", "sand_rocks", "stone", "stone_hill", "stone_mountain", "stone_rocks", "unit_boat", "unit_house", "unit_houseLarge", "unit_mill", "unit_tower", "unit_tree", "unit_wallTower", "water", "water_island",
-    "water_rocks"]
+const common = require('../public/common.js')
 
-const antonio2 = ["building_cabin", "building_castle", "building_dock", "building_farm", "building_house", "building_market", "building_mill", "building_mine", "building_sheep", "building_smelter", "building_tower", "building_village", "building_wall", "building_water", "dirt", "dirt_lumber", "grass", "grass_forest", "grass_hill", "water", "water_island", "water_rocks"]
-
-const types = {
-
-    // TIER 1
-
-    house: () => ({
-        food: 0,
-        step: (obj) => { obj.food += 1 },
-        click: (player, obj) => { player.food += obj.food; obj.food = 0 }
-    }),
-
-    forest: () => ({
-        food: 0,
-        step: (obj) => { obj.food += 1 },
-        click: (player, obj) => { player.food += obj.food; obj.food = 0 }
-    }),
-
-    hill: () => ({
-        stone: 0,
-        step: (obj) => { obj.stone += 1 },
-        click: (player, obj) => { player.stone += obj.stone; obj.stone = 0 }
-    }),
-
-    cabin: () => ({
-        wood: 0,
-        step: (obj) => { obj.wood += 1 },
-        click: (player, obj) => { player.wood += obj.wood; obj.wood = 0 }
-    }),
-
-    tower: () => ({
-        money: 0,
-        step: (obj) => { obj.money += 1 },
-        click: (player, obj) => { player.money += obj.money; obj.money = 0 }
-    }),
-
-}
-
-const neighbours = [
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-    { x: 1, y: 1 },
-    { x: -1, y: 0 },
-    { x: 0, y: -1 },
-    { x: -1, y: -1 },
-]
 class Data {
 
     grid = []
 
     constructor() {
-        // for (let x = -40; x < 40; x++) {
-        //     for (let y = -40; y < 40; y++) {
-        // let type = antonio2[Math.floor(Math.random() * antonio2.length)];
-        // if (Math.random() < .75)
-        //     type = "grass"
-        // if (Math.random() < (x / 40) * (x / 40) * (x / 40) * (x / 40))
-        //     continue
-        //     }
-        // }
-        this.set(0, 0, 'forest')
-        this.set(0, 1, 'hill')
+
+        this.grid.isWithin = (x, y) => x >= 0 && x < this.grid.length && y >= 0 && y < this.grid[x].length;
+        this.grid.is = (x, y, type) => this.grid.isWithin(x, y) && this.grid[x][y] === type;
+
+        for (let x = 0; x < common.GRID_W; x++) {
+            this.grid[x] = []
+            for (let y = 0; y < common.GRID_INITIAL_H; y++) {
+                if (y === 0)
+                    this.grid[x][y] = common.EMPTY
+                else
+                    this.grid[x][y] = common.DIRT
+            }
+        }
     }
 
-    set(x, y, type) {
-        this.grid.push({ x, y, type, ...types[type]() })
-
+    mine(x, y) {
+        if (this.grid.isWithin(x, y))
+            this.grid[x][y] = 0
     }
+
 }
 
 class Player {
 
+    color = Math.floor(Math.random() * 255)
+    x = 0
+    y = 0
     money = 0
     food = 0
     stone = 0
     wood = 0
+    target = null
+
+    step(data) {
+        const grid = data.grid
+        if (this.target) {
+            const { x: tx, y: ty } = this.target
+            if (
+                (Math.abs(this.x - tx) == 1 && Math.abs(this.y - ty) == 0)
+                ||
+                (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
+            ) {
+                if (grid.is(tx, ty, common.EMPTY)) {
+                    this.x = tx
+                    this.y = ty
+                } else {
+                    data.mine(tx, ty)
+                }
+            }
+            this.target = null
+        }
+    }
 }
 
 class Game {
@@ -90,18 +68,31 @@ class Game {
     constructor(broadcast) {
         this.broadcast = broadcast
         var tick = 0
-        var timer = 0
+        // var timer = 0
         setInterval(() => {
-            timer++
-            if (timer > 1000)
-                this.step()
-            this.broadcast({ grid: this.data.grid, scoreboard: this.getScoreBoard() })
+            // timer++
+            // if (timer > 1000)
+            //     this.step()
+            this.clients.forEach(client => {
+                client.player.step(this.data)
+                client.sendMessage({
+                    grid: this.data.grid,
+                    players: this.clients.map(x => x.player)
+                    //  scoreboard: this.getScoreBoard() 
+                })
+            })
+            // this.broadcast({ grid: this.data.grid, scoreboard: this.getScoreBoard() })
             tick++
-        }, 1000 / 30)
+        }, 1000 / 10)
+    }
+
+    onPlayerMessage(player, type, args) {
+        if (type === 'click' && args.x >= 0 && args.y >= 0)
+            player.target = { x: args.x, y: args.y }
     }
 
     step() {
-        this.data.grid.forEach(x => x?.obj?.step && x.obj.step())
+        // this.data.grid.forEach(x => x?.obj?.step && x.obj.step())
     }
 
     getScoreBoard() {
@@ -111,6 +102,7 @@ class Game {
     onClientConnect(client) {
         console.log(`Client ${client.name} connected`)
         this.clients.push(client)
+        client.player = new Player()
     }
 
     onClientDisconnect(client) {
@@ -126,7 +118,6 @@ class ServerClient {
 
     player = new Player()
     name = 'client_' + nextClientId++
-    color = Math.floor(Math.random() * 255)
     socket = undefined
     game = {}
     sendMessage = () => console.log('ServerClient not connectet yet!')
@@ -138,6 +129,8 @@ class ServerClient {
     }
 
     onMessage(args) {
+        if (args.type)
+            this.game.onPlayerMessage(this.player, args.type, args)
         console.log({ serverOnMessage: args })
 
         // if (args.message.startsWith('/nick ')) {
