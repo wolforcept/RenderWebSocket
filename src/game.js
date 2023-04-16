@@ -12,6 +12,7 @@ const buildings = {
         [72, 74, 73, 75]
     ],
 }
+
 class Data {
 
     grid = []
@@ -43,6 +44,10 @@ class Data {
                 const calc = 10 + 4 * Math.sin(.2 * x) + 8 * Math.sin(.1 * x)
                 if (calc < y && calc > y - Math.random() * 2)
                     this.set(x, y, tiles.grass4)
+                // const calc2 = 10 + 3 * Math.sin(.15 * x) + 2 * Math.sin(.01 * x)
+                const calc2 = 40 + 4 * Math.sin(.15 * x) + 8 * Math.sin(.01 * x)
+                if (calc2 < y)
+                    this.set(x, y, tiles.dirt_O)
             }
         }
 
@@ -77,6 +82,7 @@ class Data {
 
 }
 
+const neighbours = [{ dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: -1 }, { dx: 0, dy: 1 }]
 class Player {
 
     color = Math.floor(Math.random() * 255)
@@ -88,6 +94,28 @@ class Player {
     wood = 0
     target = null
 
+    menu = {}
+
+    moveTo(data, x, y) {
+        if (!data.grid.isWithin(x, y)) return
+        this.x = x
+        this.y = y
+
+        console.log(common?.tiles[data?.grid[x][y - 1]])
+        this.menu = {}
+        if (common.tiles[data.grid[x][y]].options.mineable) {
+            this.menu.mine = true
+        }
+
+        if (y > 0 && common.tiles[data.grid[x][y - 1]].options.store) {
+            this.menu.sell = true
+        }
+
+        // neighbours.forEach(n => {
+        //     if(common.tiles[data.grid[n.x][n.y]])
+        // })
+    }
+
     step(data) {
         const grid = data.grid
         if (this.target && grid.isWithin(this.target.x, this.target.y)) {
@@ -98,9 +126,8 @@ class Player {
                     (Math.abs(this.x - tx) == 1 && Math.abs(this.y - ty) == 0)
                     || (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
                 ) {
-                    if (!tile.blocks) {
-                        this.x = tx
-                        this.y = ty
+                    if (!tile?.options?.blocks) {
+                        this.moveTo(data, tx, ty)
                         // } else {
                         //     data.mine(tx, ty)
                     }
@@ -157,6 +184,7 @@ class Game {
         console.log(`Client ${client.name} connected`)
         this.clients.push(client)
         client.player = new Player()
+        client.player.moveTo(this.data, 10, 45)
     }
 
     onClientDisconnect(client) {
