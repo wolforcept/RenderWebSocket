@@ -56,13 +56,13 @@ function draw() {
         renderPlayers(DATA.players, DATA.player)
     }
 
-    if (DATA?.player?.menu)
+    if (DATA.player && DATA.player.menu)
         renderGui(DATA.player.menu)
 }
 
 function renderPlayers(players, player) {
-    const px = player?.x ? player.x : 0;
-    const py = player?.y ? player.y : 0;
+    const px = (player && player.x) ? player.x : 0;
+    const py = (player && player.y) ? player.y : 0;
 
     noStroke();
     colorMode(HSB);
@@ -75,8 +75,8 @@ function renderPlayers(players, player) {
 }
 
 function renderGrid(grid, player) {
-    const px = player?.x ? player.x : 0;
-    const py = player?.y ? player.y : 0;
+    const px = (player && player.x) ? player.x : 0;
+    const py = (player && player.y) ? player.y : 0;
 
     for (let x = 0; x < grid.length; x++) {
         for (let y = 0; y < grid[x].length; y++) {

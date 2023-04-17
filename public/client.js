@@ -8,12 +8,11 @@ class Client {
     }
 
     onMessage(args) {
-        if (args?.grid)
-            DATA.grid = args.grid
-        if (args?.players)
-            DATA.players = args.players
-        if (args?.player)
-            DATA.player = args.player
+        if (!args) return
+
+        if (args.grid) DATA.grid = args.grid
+        if (args.players) DATA.players = args.players
+        if (args.player) DATA.player = args.player
         // window.DATA.setGrid(args.grid)
         // console.log(args.grid)
         // $('.content').append($(`<div style="color:hsl(${args.color}, 96%, 44%);">${args.sender}: ${args.message}</div>`))

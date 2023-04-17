@@ -126,7 +126,7 @@ class Player {
                     (Math.abs(this.x - tx) == 1 && Math.abs(this.y - ty) == 0)
                     || (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
                 ) {
-                    if (!tile?.options?.blocks) {
+                    if (!tile.options.blocks) {
                         this.moveTo(data, tx, ty)
                         // } else {
                         //     data.mine(tx, ty)
