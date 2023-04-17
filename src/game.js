@@ -101,7 +101,7 @@ class Player {
         this.x = x
         this.y = y
 
-        console.log(common?.tiles[data?.grid[x][y - 1]])
+        // console.log(common?.tiles[data?.grid[x][y - 1]])
         this.menu = {}
         if (common.tiles[data.grid[x][y]].options.mineable) {
             this.menu.mine = true
