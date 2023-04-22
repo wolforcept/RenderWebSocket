@@ -1,8 +1,8 @@
 const MENU_W = 300;
-const OBJ_W = 32, OBJ_W2 = OBJ_W / 2;
-const OBJ_H = 32, OBJ_H2 = OBJ_H / 2;
-const VIEW_W = 20;
-const VIEW_H = 20;
+const OBJ_W = 64, OBJ_W2 = OBJ_W / 2;
+const OBJ_H = 96, OBJ_H2 = OBJ_H / 2;
+const VIEW_W = 10;
+const VIEW_H = 8;
 const CANVAS_W = OBJ_W * VIEW_W + MENU_W;
 const CANVAS_H = OBJ_H * VIEW_H;
 const CENTER_X = OBJ_W * VIEW_W / 2;
@@ -18,19 +18,24 @@ const MENU_MINE_Y = MMNN * 1
 
 let menu_images = [];
 let tile_images = [];
+
 function preload() {
     console.log('preloading...')
-    Object.keys(common.tiles).forEach(key => {
-        const tile = common.tiles[key]
-        tile_images[tile.id] = loadImage(`assets/${tile.path}.png`);
-        console.log(`images[${tile.id}] = ${tile.path}`)
+    common.tiles.forEach(tile => {
+        const path = `assets/tiles/${tile.name}.png`;
+        try {
+            tile_images[tile.id] = loadImage(path);
+            console.log(`tile_images[${tile.id}]=${path}`)
+        } catch (e) {
+            console.log(`failed to load image ${path}`)
+        }
     });
 
     // menu items
-    ['mine', 'sell'].forEach(path => {
-        menu_images[path] = loadImage(`assets/menu_${path}.png`);
-        menu_images[path + '_down'] = loadImage(`assets/menu_${path}_down.png`);
-    });
+    // ['mine', 'sell'].forEach(path => {
+    //     menu_images[path] = loadImg(`assets/gui/${path}.png`);
+    //     menu_images[path + '_down'] = loadImg(`assets/menu_${path}_down.png`);
+    // });
 
     console.log({ tile_images, menu_images })
     console.log('preload done.')
@@ -53,11 +58,22 @@ function draw() {
         renderGrid(DATA.grid, DATA.player)
     }
     if (DATA.players) {
-        renderPlayers(DATA.players, DATA.player)
+        // renderPlayers(DATA.players, DATA.player)
     }
 
     if (DATA.player && DATA.player.menu)
         renderGui(DATA.player.menu)
+}
+
+function toHex(x, y) {
+    const player = DATA.player || { x: 0, y: 0 }
+    const px = (player && player.x) ? player.x : 0;
+    const py = (player && player.y) ? player.y : 0;
+
+    return {
+        x: CENTER_X + (x - px) * OBJ_W - (OBJ_W2 * y),
+        y: CENTER_Y + (y - py) * OBJ_H2
+    }
 }
 
 function renderPlayers(players, player) {
@@ -69,33 +85,40 @@ function renderPlayers(players, player) {
 
     players.forEach(player => {
         fill(color(player.color, 100, 100));
-        ellipse(CENTER_X + (player.x - px) * OBJ_W + OBJ_W2, CENTER_Y + (player.y - py) * OBJ_H + OBJ_W2, OBJ_W * .8, OBJ_W * .8)
+        ellipse(
+            CENTER_X + (player.x - px) * OBJ_W + OBJ_W2,
+            CENTER_Y + (player.y - py) * OBJ_H + OBJ_W2, OBJ_W * .8 - (OBJ_W2 * y),
+            OBJ_W * .8)
     });
     colorMode();
 }
 
 function renderGrid(grid, player) {
-    const px = (player && player.x) ? player.x : 0;
-    const py = (player && player.y) ? player.y : 0;
 
+    // 
     for (let x = 0; x < grid.length; x++) {
+        if (!grid[x]) continue
         for (let y = 0; y < grid[x].length; y++) {
+            if (!grid[x][y]) continue
             const type = grid[x][y]
             if (!tile_images[type]) continue
-            const xx = CENTER_X + (x - px) * OBJ_W;
-            const yy = CENTER_Y + (y - py) * OBJ_H;
-            // fill(colors[type]);
-            if (xx >= 0 && yy >= 0 && xx < CANVAS_W && yy < CANVAS_H)
-                image(tile_images[type], xx, yy, OBJ_W, OBJ_H)
+            const { x: xx, y: yy } = toHex(x, y)
+
+            if (xx >= -OBJ_W && yy >= -OBJ_H && xx < CANVAS_W && yy < CANVAS_H) {
+                image(tile_images[type], xx, yy, OBJ_W, OBJ_H * .7)
+            }
         }
     }
+    fill(color(100, 100, 100));
+    ellipse(10, 10, 10)
 }
 
 var mouseClick = false, mouseWasPressed = false
 
 function haveButton(imageName, x, y, w, h, callback) {
     const isIn = mouseX >= x && mouseY >= y && mouseX <= x + w && mouseY <= y + h
-    image(menu_images[imageName + (mouseIsPressed && isIn ? '_down' : '')], x, y, w, h)
+    const img = menu_images[imageName + (mouseIsPressed && isIn ? '_down' : '')]
+    image(img, x, y, w, h)
 
     if (mouseClick && mouseButton === LEFT && isIn)
         callback()
