@@ -13,6 +13,15 @@ const buildings = {
     ],
 }
 
+function gaussianRandom(mean = 0, stdev = 1) {
+    let u = 1 - Math.random(); // Converting [0,1) to (0,1]
+    let v = Math.random();
+    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    // Transform to the desired mean and standard deviation:
+    return z * stdev + mean;
+}
+const len = 20;
+
 class Data {
 
     grid = []
@@ -21,39 +30,28 @@ class Data {
 
         this.grid.isWithin = (x, y) => x >= 0 && x < this.grid.length && y >= 0 && y < this.grid[x].length;
         this.grid.is = (x, y, type) => this.grid.isWithin(x, y) && this.grid[x][y] === type;
+        // this.grid.is = (x, y, type) => this.grid[x] && this.grid[x][y] === type;
 
-        const tiles = common.tiles
-
-        for (let x = 0; x < common.GRID_W; x++) {
-            this.grid[x] = []
-            for (let y = 0; y < common.GRID_H; y++) {
-                this.grid[x][y] = 0
+        for (let j = 0; j < len; j++) {
+            for (let i = 0; i < len + j; i++) {
+                this.set(i, j, 1)
             }
         }
-
-        for (let x = 0; x < common.GRID_W; x++) {
-            for (let y = 0; y < common.GRID_H; y++) {
-                if (Math.random() < .5)
-                    this.set(x, y, tiles.grass1)
-                else if (Math.random() < .5)
-                    this.set(x, y, tiles.grass2)
-                if (Math.random() < .5)
-                    this.set(x, y, tiles.grass3)
-                // if (x >= y * y - 10 && 1.4 * x + 4 <= y * y - 10)
-                // if (Math.abs(x * x * x - y * y + 10) < 8 + x * x)
-                const calc = 10 + 4 * Math.sin(.2 * x) + 8 * Math.sin(.1 * x)
-                if (calc < y && calc > y - Math.random() * 2)
-                    this.set(x, y, tiles.grass4)
-                // const calc2 = 10 + 3 * Math.sin(.15 * x) + 2 * Math.sin(.01 * x)
-                const calc2 = 40 + 4 * Math.sin(.15 * x) + 8 * Math.sin(.01 * x)
-                if (calc2 < y)
-                    this.set(x, y, tiles.dirt_O)
+        for (let j = len; j < len * 2 - 1; j++) {
+            for (let i = j - len + 1; i < len * 2 - 1; i++) {
+                this.set(i, j, 1)
             }
         }
+        for (let i = 0; i < 100; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const d = gaussianRandom(0, 5);
+            const x = Math.max(0, 20 + Math.floor(d * Math.cos(a)));
+            const y = Math.max(0, 20 + Math.floor(d * Math.sin(a)));
+            if (this.grid.is(x, y, 1))
+                this.set(x, y, 2)
+        }
 
-        this.setBuilding(buildings.house, 10, 15)
-        this.setBuilding(buildings.house, 26, 7)
-        this.setBuilding(buildings.house2, 21, 23)
+        console.log(this.grid)
     }
 
     setBuilding(a, x, y) {
@@ -65,8 +63,10 @@ class Data {
     }
 
     set(x, y, tile) {
-        if (this.grid.isWithin(x, y))
-            this.grid[x][y] = typeof (tile) === 'object' ? tile.id : tile
+        if (!this.grid[x])
+            this.grid[x] = []
+        // if (this.grid.isWithin(x, y))
+        this.grid[x][y] = typeof (tile) === 'object' ? tile.id : tile
     }
 
     mine(x, y) {
@@ -82,60 +82,23 @@ class Data {
 
 }
 
-const neighbours = [{ dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: -1 }, { dx: 0, dy: 1 }]
+// const neighbours = [{ dx: -1, dy: 0 }, { dx: 1, dy: 0 }, { dx: 0, dy: -1 }, { dx: 0, dy: 1 }]
 class Player {
 
     color = Math.floor(Math.random() * 255)
     x = 0
     y = 0
-    money = 0
-    food = 0
-    stone = 0
-    wood = 0
-    target = null
 
     menu = {}
 
-    moveTo(data, x, y) {
-        if (!data.grid.isWithin(x, y)) return
+    constructor() {
+    }
+
+    moveTo(x, y) {
         this.x = x
         this.y = y
-
-        // console.log(common?.tiles[data?.grid[x][y - 1]])
-        this.menu = {}
-        if (common.tiles[data.grid[x][y]].options.mineable) {
-            this.menu.mine = true
-        }
-
-        if (y > 0 && common.tiles[data.grid[x][y - 1]].options.store) {
-            this.menu.sell = true
-        }
-
-        // neighbours.forEach(n => {
-        //     if(common.tiles[data.grid[n.x][n.y]])
-        // })
     }
 
-    step(data) {
-        const grid = data.grid
-        if (this.target && grid.isWithin(this.target.x, this.target.y)) {
-            const { x: tx, y: ty } = this.target
-            const tile = common.tiles[grid[tx][ty]]
-            if (tile) {
-                if (
-                    (Math.abs(this.x - tx) == 1 && Math.abs(this.y - ty) == 0)
-                    || (Math.abs(this.x - tx) == 0 && Math.abs(this.y - ty) == 1)
-                ) {
-                    if (!tile.options.blocks) {
-                        this.moveTo(data, tx, ty)
-                        // } else {
-                        //     data.mine(tx, ty)
-                    }
-                }
-                this.target = null
-            }
-        }
-    }
 }
 
 class Game {
@@ -151,7 +114,6 @@ class Game {
         setInterval(() => {
             timer++
             this.clients.forEach(client => {
-                client.player.step(this.data)
                 client.sendMessage({
                     // grid: this.data.subGrid(client.player.x - 5, client.player.y - 5, 10, 10),
                     grid: this.data.grid,
@@ -167,7 +129,8 @@ class Game {
 
     onPlayerMessage(player, type, args) {
         if (type === 'move' && args.x !== undefined && args.y !== undefined)
-            player.target = { x: player.x + args.x, y: player.y + args.y }
+            player.moveTo(player.x + args.x, player.y + args.y)
+        // player.target = { x: player.x + args.x, y: player.y + args.y }
         // if (type === 'click' && args.x >= 0 && args.y >= 0)
         // player.target = { x: args.x, y: args.y }
     }
@@ -184,7 +147,7 @@ class Game {
         console.log(`Client ${client.name} connected`)
         this.clients.push(client)
         client.player = new Player()
-        client.player.moveTo(this.data, 10, 45)
+        client.player.moveTo(0, 0)
     }
 
     onClientDisconnect(client) {
